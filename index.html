@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Cropper.js CSS -->
+    <link  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="nav-logo">
+                <span class="logo-text">Vortex</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Home</a>
+                <a href="#" class="nav-link">Features</a>
+                <a href="#" class="nav-link">Service</a>
+                <a href="#" class="nav-link">Testimonial</a>
+            </div>
+            <div class="nav-actions">
+               <div class="theme-toggle">
+  <button class="profile-btn">Profile</button>
+  <label class="switch">
+    <input type="checkbox" id="themeToggle" />
+    <span class="slider">
+      <div class="star star_1"></div>
+      <div class="star star_2"></div>
+      <div class="star star_3"></div>
+      <svg viewBox="0 0 16 16" class="cloud_1 cloud">
+        <path
+          transform="matrix(.77976 0 0 .78395-299.99-418.63)"
+          fill="#fff"
+          d="m391.84 540.91c-.421-.329-.949-.524-1.523-.524-1.351 0-2.451 1.084-2.485 2.435-1.395.526-2.388 1.88-2.388 3.466 0 1.874 1.385 3.423 3.182 3.667v.034h12.73v-.006c1.775-.104 3.182-1.584 3.182-3.395 0-1.747-1.309-3.186-2.994-3.379.007-.106.011-.214.011-.322 0-2.707-2.271-4.901-5.072-4.901-2.073 0-3.856 1.202-4.643 2.925"
+        ></path>
+      </svg>
+    </span>
+  </label>
+</div>
+         
+            </div>
+        </nav>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Left Side - Upload Section -->
+            <div class="left-side">
+                <div class="upload-section">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">Click or drag an image here</div>
+                        <div class="upload-subtext">Supports JPG, PNG, GIF, MP4 (Max 10MB)</div>
+                        <input type="file" id="fileInput" class="file-input" accept="image/*,video/*">
+                    </div>
+                    <div class="preview-container" id="previewContainer"></div>
+                    <button class="btn btn-crop" id="cropBtn" style="display:none;margin-top:15px;">Crop Image</button>
+                </div>
+            </div>
+
+            <!-- Right Side - Form Elements -->
+            <div class="right-side">
+                <!-- Platform Selection -->
+                <div class="platform-section">
+                    <h3 class="section-title">Select Platforms</h3>
+                    <div class="platform-grid">
+                        <div class="platform-item">
+                            <input type="checkbox" id="facebook" name="platforms" value="facebook">
+                            <label for="facebook">Facebook</label>
+                        </div>
+                        <div class="platform-item">
+                            <input type="checkbox" id="instagram" name="platforms" value="instagram">
+                            <label for="instagram">Instagram</label>
+                        </div>
+                        <div class="platform-item">
+                            <input type="checkbox" id="twitter" name="platforms" value="twitter">
+                            <label for="twitter">X (Twitter)</label>
+                        </div>
+                        <div class="platform-item">
+                            <input type="checkbox" id="linkedin" name="platforms" value="linkedin">
+                            <label for="linkedin">LinkedIn</label>
+                        </div>
+                        <div class="platform-item">
+                            <input type="checkbox" id="pinterest" name="platforms" value="pinterest">
+                            <label for="pinterest">Pinterest</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Section -->
+                <div class="description-section">
+                    <h3 class="section-title">Post Description</h3>
+                    <textarea 
+                        class="description-textarea" 
+                        id="description" 
+                        placeholder="Write your caption here... #hashtags #socialmedia"
+                        maxlength="2200"
+                    ></textarea>
+                    <div class="char-counter">
+                        <span id="charCount">0</span> / 2200 characters
+                    </div>
+                </div>
+
+            <div class="scheduling-section" style="margin: 10px;">
+                    <h3 class="section-title">Scheduling Options</h3>
+                    <div class="schedule-toggle">
+                        <input type="checkbox" id="enableSchedule">
+                        <label for="enableSchedule">Enable Schedule</label>
+                        <div class="date-picker-container" id="datePickerContainer">
+
+                            <input type="datetime-local" id="publicationDate" class="date-input">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="previewBtn">Preview Post</button>
+                    <button class="btn btn-primary" id="publishBtn">Publish Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
