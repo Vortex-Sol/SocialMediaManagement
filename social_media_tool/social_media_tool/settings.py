@@ -17,7 +17,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 # -----------------------------------------------------------------------------
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # -----------------------------------------------------------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # -----------------------------------------------------------------------------
 # Read environment variables from .env in the project root
@@ -25,8 +25,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DEBUG=(bool, False)
 )
-# reads the .env file at BASE_DIR/.env
-environ.Env.read_env(BASE_DIR / '.env')
+
+# Load .env file
+env_path = BASE_DIR / '.env'
+if env_path.exists():
+    environ.Env.read_env(env_path)
+else:
+    raise Exception(f".env file not found at {env_path}")
 
 # -----------------------------------------------------------------------------
 # SECURITY & DEBUG

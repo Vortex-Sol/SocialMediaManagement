@@ -1,3 +1,18 @@
+function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 // Dark mode toggle functionality
 const themeToggle = document.getElementById('themeToggle');
 const body = document.body;
@@ -191,28 +206,39 @@ publishBtn.addEventListener('click', () => {
     const selectedPlatforms = Array.from(document.querySelectorAll('input[name="platforms"]:checked'))
         .map(cb => cb.value);
     const description = descriptionTextarea.value;
-    const isScheduled = enableSchedule.checked;
-    const scheduleDate = publicationDate.value;
 
-    if (selectedPlatforms.length === 0) {
-        alert('Please select at least one platform');
-        return;
+    if (selectedPlatforms.includes('twitter')) {
+      const formData = new FormData();
+formData.append('description', description);
+
+// Convert base64 image to Blob and attach to form
+if (lastImageURL) {
+    const blob = dataURLToBlob(lastImageURL);
+    formData.append('image', blob, 'upload.png');
+}
+
+fetch('/publish/twitter/', {
+    method: 'POST',
+    headers: {
+        'X-CSRFToken': getCSRFToken()
+    },
+    body: formData
+})
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Tweet posted successfully! Link: ' + data.tweet_url);
+            } else {
+                alert('Failed to post tweet: ' + (data.error || data.message));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while posting to Twitter.');
+        });
+    } else {
+        alert('Twitter not selected.');
     }
-
-    if (isScheduled && !scheduleDate) {
-        alert('Please select a publication date');
-        return;
-    }
-
-    console.log('Publishing:', {
-        platforms: selectedPlatforms,
-        description,
-        scheduled: isScheduled,
-        publishDate: scheduleDate
-    });
-
-    const action = isScheduled ? 'scheduled' : 'published';
-    alert(`Post ${action} successfully to ${selectedPlatforms.join(', ')}!`);
 });
 
 // Additional utility functions
@@ -256,3 +282,13 @@ window.SocialMediaManager = {
     validateForm,
     resetForm
 };
+function dataURLToBlob(dataURL) {
+    const byteString = atob(dataURL.split(',')[1]);
+    const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+}
