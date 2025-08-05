@@ -1,5 +1,6 @@
 .DS_Store
 *.terraform
+../.idea/
 .idea/
 
 # Byte-compiled / optimized / DLL files
@@ -139,7 +140,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+../.env
 .envrc
 .venv
 env/
