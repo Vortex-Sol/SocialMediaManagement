@@ -47,8 +47,8 @@ def post_pin(text, image_path):
     # 3. Create the Pin with image base64 data
     pin_payload = {
         "board_id": board_id,
-        "title": "Pin from Base64 Image",
-        "description": text,
+        "title": text,
+        "description": "Vortex Solution",
         "media_source": {
             "source_type": "image_base64",
             "content_type": "image/png",
@@ -61,15 +61,18 @@ def post_pin(text, image_path):
         headers=headers,
         json=pin_payload
     )
-    # 4. Handle result
     if res.status_code == 201:
         pin = res.json()
-        print(f"✅ Pin created! ID: {pin['id']} | URL: https://pin.it/{pin['id']}")
-    else:
-        print("Pin creation failed")
-        print("Status:", res.status_code)
-        print("Response:", res.json())
+        pin_id = pin.get("id")
+        url = f"https://pin.it/{pin_id}" if pin_id else None
+        return True, pin_id, url
 
-#example usage. can be deleted after connecting to frontend
-post_pin("new pin", "temp/image.jpg")
+        # failure
+    try:
+        detail = res.json()
+    except Exception:
+        detail = res.text
+    return False, None, f"Pin creation failed: {res.status_code} {detail}"
+
+
 
