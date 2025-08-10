@@ -7,9 +7,9 @@ from django.views.decorators.csrf import csrf_exempt
 # platform functions
 from .api_platforms.twitter_api import post_tweet
 from .api_platforms.pinterest_api import post_pin
-from .api_platforms.facebook import post_facebook
-from .api_platforms.instagram import post_insta
-from .api_platforms.linkedin import post_linkedin
+from .api_platforms.facebook_api import post_facebook
+from .api_platforms.instagram_api import post_insta
+from .api_platforms.linkedin_api import post_linkedin
 
 
 def post_page(request):
@@ -157,8 +157,6 @@ def _dispatch_post(platform, text, image_path):
 
     if platform == 'linkedin':
         result = post_linkedin(text, image_path)
-        if result is NotImplemented:
-            raise NotImplementedError
         return _normalize_generic_result(result)
 
     raise ValueError('Unknown platform')

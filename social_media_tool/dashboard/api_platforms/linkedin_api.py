@@ -1,4 +1,6 @@
 import os
+from dbm.sqlite3 import GET_SIZE
+
 import requests
 from certifi import contents
 from urllib.parse import urlencode
@@ -16,13 +18,14 @@ LINKEDIN_API_URL = "https://api.linkedin.com/v2"
 
 
 
+
 def auth_linkedin():
     #1. Providing a link to login and authenticate
     params = {
         "response_type" : "code",
         "client_id" : LINKEDIN_CLIENT_ID,
         "redirect_uri" : LINKEDIN_REDIRECT_URI,
-        "scope" : "w_member_social"
+        "scope" : "openid profile w_member_social"
     }
 
     auth_url = f"https://www.linkedin.com/oauth/v2/authorization?{urlencode(params)}"
@@ -48,6 +51,8 @@ def auth_linkedin():
         "https://www.linkedin.com/oauth/v2/accessToken", data, headers={"Content-Type" : "application/x-www-form-urlencoded"}
     )
 
+    print("token response:" + str(token_response.json()))
+
     #4. Receiving Access token
     if token_response.status_code == 200:
         token_data = token_response.json()
@@ -63,28 +68,26 @@ def auth_linkedin():
 
 
 
-def post_linkedin(access_token, text):
-
+def post_linkedin(text, image_path=None):
     #1. Getting profile ID
-    profile_response = requests.get(
-        "https://api.linkedin.com/v2/me",
+    userinfo_response = requests.get(
+        "https://api.linkedin.com/v2/userinfo",
         headers={
-            "Authorization": f"Bearer {access_token}",
-            "X-Restli-Protocol-Version": "2.0.0"
+            "Authorization": f"Bearer {LINKEDIN_ACCESS_TOKEN}"
         }
     )
 
-    print("Profile full response: " + str(profile_response.json()))
+    print("Profile full response: " + str(userinfo_response.json()))
 
-    profile_data = profile_response.json()
-    profile_urn = profile_data.get("id")
+    profile_data = userinfo_response.json()
+    profile_urn = profile_data.get("sub")
 
     if not profile_urn:
         print("Error: Could not get profile URN")
         print("Full response:", profile_data)
         return None
 
-
+    #2. Prepaing post data
     post_data = {
         "author" : f"urn:li:person:{profile_urn}",
         "commentary" : text,
@@ -98,26 +101,42 @@ def post_linkedin(access_token, text):
         "isReshareDisabledByAuthor": False
     }
 
+    #3. Posting to LinkedIn
     post_response = requests.post(
-        "https://api.linkedin.com/rest/posts", post_data,
+        "https://api.linkedin.com/rest/posts",
         headers={
-            "Authorization": f"Bearer {access_token}",
-            "X-Restli-Protocol-Version": "2.0.0",
+            "Authorization": f"Bearer {LINKEDIN_ACCESS_TOKEN}",
+            "LinkedIn-Version": "202507",
             "Content-Type": "application/json"
         },
         json=post_data
     )
 
     if post_response.status_code == 201:
-        print("Post created successfullly")
-        return post_response.json()
+        print("Post created successfully")
+
+        try:
+            data = post_response.json() if post_response.text.strip() else {}
+        except ValueError:
+
+            data = {}
+
+        return {
+            "success": True,
+            "id": data.get("sub"),
+            "url": None,
+            "message": "Post created successfully"
+        }
     else:
         print(f"Error: {post_response.status_code}")
         print(post_response.text)
-        return None
+        return {
+            "success": False,
+            "error": "Failed to create post"
+        }
 
 
 if __name__ == "__main__":
-    access_token = auth_linkedin()
-    #post_linkedin(access_token, "test text")
+    # access_token = auth_linkedin()
+    post_linkedin("test text4")
 
