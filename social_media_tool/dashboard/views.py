@@ -1,15 +1,18 @@
 import json
 import os
+import uuid
+
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+import tempfile
 
 # platform functions
 from .api_platforms.twitter_api import post_tweet
 from .api_platforms.pinterest_api import post_pin
-from .api_platforms.facebook import post_facebook
-from .api_platforms.instagram import post_insta
-from .api_platforms.linkedin import post_linkedin
+from .api_platforms.facebook_api import post_facebook
+from .api_platforms.instagram_api import post_insta
+from .api_platforms.linkedin_api import post_linkedin
 
 
 def post_page(request):
@@ -118,11 +121,16 @@ def _save_temp_file(django_file):
     """Save uploaded file to /tmp and return its path."""
     if not django_file:
         return None
-    path = f"/tmp/{django_file.name}"
-    with open(path, 'wb+') as f:
+
+    temp_dir = os.path.join(tempfile.gettempdir(), "temp_social_media")
+    os.makedirs(temp_dir, exist_ok=True)
+
+    temp_path = os.path.join(temp_dir, django_file.name)
+    with open(temp_path, 'wb+') as f:
         for chunk in django_file.chunks():
             f.write(chunk)
-    return path
+
+    return temp_path
 
 
 def _dispatch_post(platform, text, image_path):
@@ -157,8 +165,6 @@ def _dispatch_post(platform, text, image_path):
 
     if platform == 'linkedin':
         result = post_linkedin(text, image_path)
-        if result is NotImplemented:
-            raise NotImplementedError
         return _normalize_generic_result(result)
 
     raise ValueError('Unknown platform')
