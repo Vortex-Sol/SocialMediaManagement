@@ -64,7 +64,7 @@ def post_pin(text, image_path):
     if res.status_code == 201:
         pin = res.json()
         pin_id = pin.get("id")
-        url = f"https://pin.it/{pin_id}" if pin_id else None
+        url = f"https://pinterest.com/pin/{pin_id}/" if pin_id else None
         return True, pin_id, url
 
         # failure
