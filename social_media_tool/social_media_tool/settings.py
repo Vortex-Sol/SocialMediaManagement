@@ -132,8 +132,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # -----------------------------------------------------------------------------
 # Twitter API credentials from environment
 # -----------------------------------------------------------------------------
-TWITTER_API_KEY = env('TWITTER_API_KEY')
-TWITTER_API_SECRET = env('TWITTER_API_SECRET')
+TWITTER_API_KEY = env('TWITTER_API_KEY', default=None)
+TWITTER_API_SECRET = env('TWITTER_API_SECRET', default=None)
 TWITTER_ACCESS_TOKEN = env('TWITTER_ACCESS_TOKEN', default=None)
 TWITTER_ACCESS_TOKEN_SECRET = env('TWITTER_ACCESS_TOKEN_SECRET', default=None)
 TWITTER_BEARER_TOKEN = env('TWITTER_BEARER_TOKEN', default=None)

@@ -203,43 +203,57 @@ previewBtn.addEventListener('click', () => {
 });
 
 publishBtn.addEventListener('click', () => {
-    const selectedPlatforms = Array.from(document.querySelectorAll('input[name="platforms"]:checked'))
-        .map(cb => cb.value);
-    const description = descriptionTextarea.value;
+  const selectedPlatforms = Array.from(
+    document.querySelectorAll('input[name="platforms"]:checked')
+  ).map(cb => cb.value);
 
-    if (selectedPlatforms.includes('twitter')) {
-      const formData = new FormData();
-formData.append('description', description);
+  const description = descriptionTextarea.value.trim();
 
-// Convert base64 image to Blob and attach to form
-if (lastImageURL) {
+  if (selectedPlatforms.length === 0) {
+    alert('Please select at least one platform');
+    return;
+  }
+  if (!description) {
+    alert('Please write a caption/description');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('description', description);
+  formData.append('platforms', JSON.stringify(selectedPlatforms));
+
+  // add image (if any)
+  if (lastImageURL) {
     const blob = dataURLToBlob(lastImageURL);
     formData.append('image', blob, 'upload.png');
-}
+  }
 
-fetch('/publish/twitter/', {
+  fetch('/publish/', {
     method: 'POST',
-    headers: {
-        'X-CSRFToken': getCSRFToken()
-    },
+    headers: { 'X-CSRFToken': getCSRFToken() },
     body: formData
-})
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert('Tweet posted successfully! Link: ' + data.tweet_url);
-            } else {
-                alert('Failed to post tweet: ' + (data.error || data.message));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while posting to Twitter.');
-        });
-    } else {
-        alert('Twitter not selected.');
-    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status !== 'ok') {
+        alert('Something went wrong: ' + (data.message || 'Unknown error'));
+        return;
+      }
+
+      // Show per-platform results in a simple summary
+      const lines = Object.entries(data.results).map(([platform, r]) => {
+        if (r.status === 'success') return `✅ ${platform}: posted (${r.url || 'no url'})`;
+        if (r.status === 'skipped') return `⚠️ ${platform}: skipped — ${r.reason}`;
+        return `❌ ${platform}: ${r.error || 'failed'}`;
+      });
+      alert(lines.join('\n'));
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Network error while publishing.');
+    });
 });
+
 
 // Additional utility functions
 function validateForm() {
