@@ -1,3 +1,4 @@
+import base64
 import os
 from dbm.sqlite3 import GET_SIZE
 
@@ -88,6 +89,60 @@ def post_linkedin(text, image_path=None):
         return None
 
     #2. Prepaing post data
+
+    #2.1 getting uploadurl
+    image_urn = None
+    if image_path:
+        try:
+
+            init_upload_response = requests.post(
+                "https://api.linkedin.com/rest/images?action=initializeUpload",
+                headers={
+                    "Authorization": f"Bearer {LINKEDIN_ACCESS_TOKEN}",
+                    "LinkedIn-Version": "202507",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "initializeUploadRequest" : {
+                        "owner" : f"urn:li:person:{profile_urn}",
+                    }
+                }
+            )
+
+            if init_upload_response.status_code != 200:
+                return {
+                    "success": False,
+                    "error": f"Image init upload failed: {init_upload_response.text}",
+                }
+
+
+            upload_data = init_upload_response.json()
+            upload_url= upload_data['value']['uploadUrl']
+            image_urn=upload_data['value']['image']
+
+            with open(image_path, 'rb') as image_file:
+                upload_response = requests.put(
+                    upload_url,
+                    headers={
+                        "Content-Type": "application/octet-stream"
+                    },
+                    data=image_file
+                )
+
+                if upload_response.status_code not in (200, 201):
+                    return {
+                        "success": False,
+                        "error": f"Image upload failed: {upload_response.text}"
+                    }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Image processing error: {str(e)}"
+            }
+
+
+
     post_data = {
         "author" : f"urn:li:person:{profile_urn}",
         "commentary" : text,
@@ -101,6 +156,14 @@ def post_linkedin(text, image_path=None):
         "isReshareDisabledByAuthor": False
     }
 
+    if image_urn:
+        post_data["content"] = {
+            "media": {
+                "title": "Image Post",
+                "id" : image_urn,
+            }
+        }
+
     #3. Posting to LinkedIn
     post_response = requests.post(
         "https://api.linkedin.com/rest/posts",
@@ -112,31 +175,44 @@ def post_linkedin(text, image_path=None):
         json=post_data
     )
 
+    #4. informative result return
     if post_response.status_code == 201:
-        print("Post created successfully")
-
-        try:
-            data = post_response.json() if post_response.text.strip() else {}
-        except ValueError:
-
+        print("Post created successfully.")
+        if(post_response.text.strip()):
+            try:
+                data = post_response.json()
+            except ValueError:
+                data = {}
+                print("Failed to parse JSON response:", post_response.text)
+        else:
             data = {}
+
+        # 4.1 getting post URN
+        location_header = post_response.headers.get("Location")
+        if location_header:
+            urn = location_header.split("/")[-1]
+            post_url = f"https://www.linkedin.com/feed/update/{urn}"
+        else:
+            post_url = None
+
+
 
         return {
             "success": True,
             "id": data.get("sub"),
-            "url": None,
+            "url": post_url,
             "message": "Post created successfully"
         }
+
     else:
-        print(f"Error: {post_response.status_code}")
-        print(post_response.text)
         return {
             "success": False,
-            "error": "Failed to create post"
+            "error": f"Post failed: {post_response.text}"
         }
+
 
 
 if __name__ == "__main__":
     # access_token = auth_linkedin()
-    post_linkedin("test text4")
+    post_linkedin("test textyo3", "Nice1!.png")
 
