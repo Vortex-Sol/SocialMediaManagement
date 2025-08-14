@@ -209,10 +209,3 @@ def post_linkedin(text, image_path=None):
             "success": False,
             "error": f"Post failed: {post_response.text}"
         }
-
-
-
-if __name__ == "__main__":
-    # access_token = auth_linkedin()
-    post_linkedin("test textyo3", "Nice1!.png")
-
