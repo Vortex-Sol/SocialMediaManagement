@@ -52,9 +52,6 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(to bottom, #000 0%, #764ba2 100%);
     min-height: 100vh;
-    min-width: 100vw;
-    width: 100vw;
-    height: 100vh;
     margin: 0;
     padding: 0;
     transition: all 0.3s ease;
@@ -68,17 +65,14 @@ body[data-theme="light"] {
 }
 
 .container {
-    max-width: none;
-    width: 100vw;
-    height: 100vh;
-    margin: 0;
-    background: transparent;
-    border-radius: 0;
+    max-width: 100%;
+    margin: 0 auto;
     padding: 0;
     box-shadow: none;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-x: hidden;
+    min-height: 100vh;
 }
 
 .header {
@@ -437,15 +431,16 @@ body[data-theme="light"] {
 .platform-section, .description-section, .scheduling-section {
     width: 100%;
     min-width: 0;
-    min-height: 120px;
-    padding: 56px 48px 40px 48px;
+    padding: 48px;
     margin-bottom: 0;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
 @media (max-width: 1200px) {
     .platform-section, .description-section, .scheduling-section {
-        padding: 40px 12px 24px 12px;
+        padding: 30px;
     }
 }
 
@@ -839,6 +834,7 @@ body[data-theme="light"] {
     gap: 15px;
     justify-content: center;
     margin-top: 30px;
+    margin-bottom: 30px; /* Yeni eklenen kod */
 }
 
 .btn {
@@ -1027,40 +1023,51 @@ body[data-theme="light"] {
 [data-theme="light"] .theme-label {
     color: #333;
 }
-
-/* Responsive Navigation */
 @media (max-width: 768px) {
-    .navbar {
-        padding: 15px 20px;
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .nav-links {
+    .main-layout {
+        grid-template-columns: 1fr;
         gap: 20px;
-        flex-wrap: wrap;
-        justify-content: center;
+        padding: 0 15px; /* Ana layout için kenarlardan boşluk */
     }
-    
-    .nav-actions {
+    .navbar {
+        flex-direction: column;
+        align-items: center;
+        padding: 15px 20px;
         gap: 15px;
+    }
+    .nav-links {
+        gap: 15px;
+    }
+    .left-side, .right-side {
+        width: 100%;
+        padding: 0;
+    }
+    .platform-section, .description-section, .scheduling-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .upload-area, .preview-container {
+        width: 100%;
+        height: auto;
+        min-height: 200px;
+    }
+    .platform-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    .action-buttons {
+        flex-direction: column;
     }
 }
-
 @media (max-width: 480px) {
     .header h1 {
         font-size: 1.8rem;
     }
-
-    .upload-area {
-        padding: 30px 10px;
-    }
-
     .upload-text {
         font-size: 1rem;
     }
-
-    .section-title {
-        font-size: 1.1rem;
+    .btn {
+        padding: 12px 20px;
+        font-size: 1rem;
     }
 }
