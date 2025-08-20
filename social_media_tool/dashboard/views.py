@@ -1,11 +1,14 @@
 import json
 import os
+import secrets
 import uuid
 
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 import tempfile
+import requests.compat
 
 # platform functions
 from .api_platforms.twitter_api import post_tweet
@@ -17,6 +20,77 @@ from .api_platforms.linkedin_api import post_linkedin
 
 def post_page(request):
     return render(request, 'dashboard/index.html')
+
+def linkedin_login(request):
+    "Linkedin OAuth Flow"
+    print("starting linkedin login")
+
+
+    state = secrets.token_urlsafe(16)
+
+
+
+
+    print(f"Generated state: {state}")
+
+    request.session['linkedin_state'] = state
+    request.session.save()
+
+    print(f"Stored state in session {request.session.get('linkedin_state')}")
+
+    params = {
+        "response_type": "code",
+        "client_id": settings.LINKEDIN_CLIENT_ID,
+        "redirect_uri": "http://localhost:8000/linkedin/callback/",
+        "scope": "openid profile w_member_social",
+        "state": state,
+    }
+    auth_url = f"https://www.linkedin.com/oauth/v2/authorization?{requests.compat.urlencode(params)}"
+
+    print("Session key:", request.session.session_key)
+    print("Session data:", dict(request.session))
+
+    return redirect(auth_url)
+
+def linkedin_callback(request):
+    "Linkedin OAth flow redirect"
+    print("LinkedIn callback view called")
+    print(f"Received state: {request.GET.get('state')}")
+    print(f"Stored state: {request.session.get('linkedin_state')}")
+
+    print("Session key:", request.session.session_key)
+    print("Session data:", dict(request.session))
+
+    state = request.GET.get('state')
+    stored_state = request.session.get('linkedin_state')
+    if not stored_state or state != stored_state:
+        print("State mismatch or missing")
+        return JsonResponse({"error": f"Invalid state parameter."}, status=400)
+
+    auth_code = request.GET.get('code')
+    if not auth_code:
+        print("Missing auth code parameter")
+        return JsonResponse({"error": "Missing code parameter"}, status=400)
+
+    token_url = "https://www.linkedin.com/oauth/v2/accessToken"
+    data = {
+        "grant_type" : "authorization_code",
+        "code" : auth_code,
+        "redirect_uri": "http://localhost:8000/linkedin/callback/",
+        "client_id": settings.LINKEDIN_CLIENT_ID,
+        "client_secret": settings.LINKEDIN_CLIENT_SECRET,
+    }
+    res = requests.post(token_url, data=data, headers={
+        "Content-Type": "application/x-www-form-urlencoded"
+    })
+    token_json = res.json()
+
+    if "access_token" in token_json:
+        request.session['linkedin_access_token'] = token_json['access_token']
+        del request.session['linkedin_state']
+        return redirect('/')  # Redirect to home or dashboard
+    else:
+        return JsonResponse({"error": "Failed to obtain access token"}, status=400)
 
 
 @csrf_exempt
@@ -75,6 +149,11 @@ def publish_to_platforms(request):
         requires_image = {'instagram', 'pinterest'}
 
         results = {}
+
+        access_token = request.session.get('linkedin_access_token')
+        if 'linkedin' in platforms and not access_token:
+            results['linkedin'] = {'status': 'skipped', 'reason': 'Not authenticated with LinkedIn.'}
+
         for platform in platforms:
             platform = (platform or '').lower().strip()
             if platform not in {'twitter', 'facebook', 'instagram', 'linkedin', 'pinterest'}:
@@ -92,7 +171,7 @@ def publish_to_platforms(request):
                 continue
 
             try:
-                res = _dispatch_post(platform, text, image_path)
+                res = _dispatch_post(platform, text, image_path, access_token)
                 results[platform] = res
             except NotImplementedError:
                 results[platform] = {
@@ -133,7 +212,7 @@ def _save_temp_file(django_file):
     return temp_path
 
 
-def _dispatch_post(platform, text, image_path):
+def _dispatch_post(platform, text, image_path, access_token):
     """
     Call the right function and normalize its return into:
       { status: 'success'|'error', id?: str, url?: str, message?: str, error?: str }
@@ -164,7 +243,7 @@ def _dispatch_post(platform, text, image_path):
         return _normalize_generic_result(result)
 
     if platform == 'linkedin':
-        result = post_linkedin(text, image_path)
+        result = post_linkedin(text, image_path, access_token)
         return _normalize_generic_result(result)
 
     raise ValueError('Unknown platform')

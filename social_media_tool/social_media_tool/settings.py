@@ -118,6 +118,18 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+# -----------------------------------------------------------------------------
+# Security setup
+# -----------------------------------------------------------------------------
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = True
+
+SESSION_ENGINE='django.contrib.sessions.backends.db'
+
 
 # -----------------------------------------------------------------------------
 # Static files (CSS, JavaScript, Images)
@@ -137,3 +149,7 @@ TWITTER_API_SECRET = env('TWITTER_API_SECRET', default=None)
 TWITTER_ACCESS_TOKEN = env('TWITTER_ACCESS_TOKEN', default=None)
 TWITTER_ACCESS_TOKEN_SECRET = env('TWITTER_ACCESS_TOKEN_SECRET', default=None)
 TWITTER_BEARER_TOKEN = env('TWITTER_BEARER_TOKEN', default=None)
+
+LINKEDIN_CLIENT_ID = env('LINKEDIN_CLIENT_ID', default=None)
+LINKEDIN_CLIENT_SECRET = env('LINKEDIN_CLIENT_SECRET', default=None)
+LINKEDIN_REDIRECT_URI = env('LINKEDIN_REDIRECT_URI', default=None)

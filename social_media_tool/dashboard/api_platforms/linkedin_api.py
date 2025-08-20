@@ -8,8 +8,10 @@ from certifi import contents
 from urllib.parse import urlencode
 from requests_oauthlib import OAuth1
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
 
 load_dotenv(dotenv_path="../../../.env")
+app = Flask(__name__)
 
 LINKEDIN_CLIENT_ID = os.getenv("LINKEDIN_CLIENT_ID")
 LINKEDIN_CLIENT_SECRET = os.getenv("LINKEDIN_CLIENT_SECRET")
@@ -17,8 +19,6 @@ LINKEDIN_CLIENT_SECRET = os.getenv("LINKEDIN_CLIENT_SECRET")
 LINKEDIN_ACCESS_TOKEN = os.getenv("LINKEDIN_ACCESS_TOKEN", default=None)
 LINKEDIN_REDIRECT_URI = os.getenv("LINKEDIN_REDIRECT_URI", default=None)
 LINKEDIN_API_URL = "https://api.linkedin.com/v2"
-
-
 
 
 def auth_linkedin():
@@ -70,7 +70,7 @@ def auth_linkedin():
 
 
 
-def post_linkedin(text, image_path=None):
+def post_linkedin(text, image_path=None, access_token=None):
     #1. Getting profile ID
     userinfo_response = requests.get(
         "https://api.linkedin.com/v2/userinfo",
